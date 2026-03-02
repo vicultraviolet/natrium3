@@ -12,3 +12,5 @@ name = "sandbox"
 path = "examples/sandbox/sandbox.rs"
 
 [dependencies]
+winit = "0.30.12"
+
