@@ -37,8 +37,8 @@ impl Accumulator
         self.inv_period = 1.0 / period;
     }
 
-    pub fn get_accumulator(&self) -> f64 { self.accumulator }
-    pub fn get_period(&self) -> f64 { self.period }
-    pub fn get_inv_period(&self) -> f64 { self.inv_period }
+    pub fn accumulator(&self) -> f64 { self.accumulator }
+    pub fn period(&self) -> f64 { self.period }
+    pub fn inv_period(&self) -> f64 { self.inv_period }
 }
 

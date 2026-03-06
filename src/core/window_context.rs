@@ -72,7 +72,7 @@ impl ApplicationHandler for Handler
             WindowEvent::CloseRequested => event_loop.exit(),
             WindowEvent::RedrawRequested =>
             {
-                let dt = self.app.get_window_context().timekeeper.get_dt();
+                let dt = self.app.get_window_context().timekeeper.dt();
                 let tick_count = self.app.get_window_context().tick_accumulator.update(dt);
 
                 for _ in 0..tick_count

@@ -36,7 +36,7 @@ impl App
     
     pub fn has_window_context(&self) -> bool { self.window_context.is_some() }
     pub fn get_window_context(&mut self) -> &mut WindowContext { self.window_context.as_mut().unwrap() }
-    pub fn get_window_context_opt(&mut self) -> &mut Option<WindowContext> { &mut self.window_context }
+    pub fn window_context(&mut self) -> &mut Option<WindowContext> { &mut self.window_context }
 
     pub fn push_layer(&mut self, layer: impl Layer + 'static)
     {

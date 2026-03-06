@@ -43,6 +43,6 @@ impl Timekeeper
         self.frame_duration = Duration::from_secs_f64(1.0 / fps);
     }
 
-    pub fn get_dt(&self) -> f64 { self.dt }
+    pub fn dt(&self) -> f64 { self.dt }
 }
 
