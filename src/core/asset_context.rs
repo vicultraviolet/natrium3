@@ -7,13 +7,20 @@ use crate::core::{asset::{self, Asset, Handle}, asset_registry::Registry};
 struct Slot<T: Asset>
 {
     generation: u32,
-    asset: T
+    asset: Option<T>
+}
+
+type Assets<T> = Vec<Slot<T>>;
+
+struct Storage 
+{
+    assets: Box<dyn Any>, 
+    free_list: Vec<u32>
 }
 
 pub struct Context
 {
-    storage: HashMap<TypeId, Box<dyn Any>>,
-    free_lists: HashMap<TypeId, Vec<u32>>,
+    storages: HashMap<TypeId, Storage>,
 
     registry: Registry, 
     registry_path: PathBuf,
@@ -30,8 +37,7 @@ impl Context
         let _ = registry.load(&registry_path);
 
         Self{
-            storage: HashMap::new(),
-            free_lists: HashMap::new(),
+            storages: HashMap::new(),
 
             registry,
             registry_path,
@@ -49,27 +55,25 @@ impl Context
     {
         let type_id = TypeId::of::<T>();
 
-        let slots = self.storage
+        let storage = self.storages
             .entry(type_id)
-            .or_insert_with(|| Box::new(Vec::<Slot<T>>::new()))
-            .downcast_mut::<Vec::<Slot<T>>>()
-            .unwrap();
+            .or_insert_with(|| Storage{ assets: Box::new(Assets::<T>::new()), free_list: Vec::new() });
 
-        let free_indices = self.free_lists.entry(type_id).or_default();
+        let slots = storage.assets.downcast_mut::<Assets::<T>>().unwrap();
 
-        let (index, generation) = if let Some(free_index) = free_indices.pop()
+        let (index, generation) = if let Some(free_index) = storage.free_list.pop()
         {
             let slot = &mut slots[free_index as usize];
 
             slot.generation += 1;
-            slot.asset = asset;
+            slot.asset = Some(asset);
 
             (free_index, slot.generation)
         }
         else 
         {
             let index = slots.len() as u32;
-            slots.push(Slot{ generation: 0, asset });
+            slots.push(Slot{ generation: 0, asset: Some(asset) });
             (index, 0)
         };
 
@@ -87,45 +91,48 @@ impl Context
     {
         let type_id = TypeId::of::<T>();
 
-        let slots = self.storage.get_mut(&type_id)?.downcast_mut::<Vec<Slot<T>>>()?;
-        let slot = slots.get(handle.index as usize)?;
-
-        if handle.generation != slot.generation
-        {
-            return None;
-        }
-
-        self.free_lists.entry(type_id).or_default().push(handle.index);
-
-        Some(slots.remove(handle.index as usize).asset)
-    }
-
-    pub fn get<T: Asset + 'static>(&self, handle: &Handle<T>) -> Option<&T>
-    {
-        let type_id = TypeId::of::<T>();
-
-        let slots = self.storage.get(&type_id)?.downcast_ref::<Vec<Slot<T>>>()?;
-        let slot = slots.get(handle.index as usize)?;
-
-        if handle.generation != slot.generation
-        {
-            return None;
-        }
-        Some(&slot.asset)
-    }
-
-    pub fn get_mut<T: Asset + 'static>(&mut self, handle: &Handle<T>) -> Option<&mut T>
-    {
-        let type_id = TypeId::of::<T>();
-
-        let slots = self.storage.get_mut(&type_id)?.downcast_mut::<Vec<Slot<T>>>()?;
+        let storage = self.storages.get_mut(&type_id)?;
+        let slots = storage.assets.downcast_mut::<Assets::<T>>().unwrap();
         let slot = slots.get_mut(handle.index as usize)?;
 
         if handle.generation != slot.generation
         {
             return None;
         }
-        Some(&mut slot.asset)
+
+        slot.asset.take()
+    }
+
+    pub fn get<T: Asset + 'static>(&self, handle: &Handle<T>) -> Option<&T>
+    {
+        let type_id = TypeId::of::<T>();
+
+        let storage = self.storages.get(&type_id)?;
+        let slots = storage.assets.downcast_ref::<Assets::<T>>().unwrap();
+        let slot = slots.get(handle.index as usize)?;
+
+        if handle.generation != slot.generation
+        {
+            return None;
+        }
+
+        slot.asset.as_ref()
+    }
+
+    pub fn get_mut<T: Asset + 'static>(&mut self, handle: &Handle<T>) -> Option<&mut T>
+    {
+        let type_id = TypeId::of::<T>();
+
+        let storage = self.storages.get_mut(&type_id)?;
+        let slots = storage.assets.downcast_mut::<Assets::<T>>().unwrap();
+        let slot = slots.get_mut(handle.index as usize)?;
+
+        if handle.generation != slot.generation
+        {
+            return None;
+        }
+
+        slot.asset.as_mut()
     }
 
     pub fn get_handle<T: Asset + 'static>(&self, uuid: &Uuid) -> Option<Handle<T>>
