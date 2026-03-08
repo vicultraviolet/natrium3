@@ -8,7 +8,7 @@ use crate::chrono::accumulator::Accumulator;
 use crate::chrono::timekeeper::Timekeeper;
 use crate::core::app::App;
 
-pub struct WindowContext
+pub struct Context
 {
     timekeeper: Timekeeper,
     tick_accumulator: Accumulator,
@@ -16,7 +16,7 @@ pub struct WindowContext
     title: String,
 }
 
-impl WindowContext
+impl Context
 {
     pub fn new(target_fps: u64, title: impl Into<String>) -> Self
     {

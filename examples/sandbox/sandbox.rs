@@ -5,7 +5,7 @@ use natrium3::core::asset::{self, Asset};
 use natrium3::core::asset_context::Context as AssetContext;
 use natrium3::core::layer::Layer;
 use natrium3::core::text_asset::TextAsset;
-use natrium3::core::window_context::WindowContext;
+use natrium3::core::window_context::Context as WindowContext;
 
 struct GameLayer
 {

@@ -2,7 +2,7 @@ use winit::event::WindowEvent;
 
 use crate::core::asset_context::Context as AssetContext;
 use crate::core::layer::Layer;
-use crate::core::window_context::{WindowContext, run_app};
+use crate::core::window_context::{Context as WindowContext, run_app};
 
 #[derive(Default)]
 pub struct App
