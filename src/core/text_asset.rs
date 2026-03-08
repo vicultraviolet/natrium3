@@ -1,22 +1,18 @@
 use std::{path::Path, fs::{read_to_string, write}};
 
-use uuid::Uuid;
-
-use crate::core::asset::Asset;
+use crate::core::asset::{self, Asset};
 
 #[derive(Debug, Default)]
 pub struct TextAsset
 {
-    uuid: Uuid,
     data: String,
 }
 
 impl TextAsset
 {
-    pub fn new(uuid: Uuid) -> Self
+    pub fn new() -> Self
     {
         Self{
-            uuid,
             ..Self::default()
         }
     }
@@ -27,21 +23,16 @@ impl TextAsset
 
 impl Asset for TextAsset
 {
-    fn load(&mut self, path: &Path) -> Result<(), Box<dyn std::error::Error>>
+    fn load(&mut self, path: &Path) -> Result<(), asset::Error>
     {
         self.data = read_to_string(path)?;
         Ok(())
     }
 
-    fn save(&mut self, path: &Path) -> Result<(), Box<dyn std::error::Error>>
+    fn save(&mut self, path: &Path) -> Result<(), asset::Error>
     {
         write(path, &mut self.data)?;
         Ok(())
-    }
-
-    fn uuid(&self) -> &Uuid
-    {
-        &self.uuid
     }
 }
 

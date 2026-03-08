@@ -1,44 +1,36 @@
-use std::{collections::HashMap, error::Error, fs::File, io::BufReader, path::Path};
+use std::{collections::HashMap, fs::File, io::BufReader, path::Path};
 
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::core::asset::Asset;
+use crate::core::asset::{self, Asset};
 
 #[derive(Debug, Default, Serialize, Deserialize)]
-pub struct AssetRegistry
+pub struct Registry
 {
-    uuid: Uuid,
     registry: HashMap<String, Uuid>
 }
 
-impl AssetRegistry
+impl Registry
 {
-    pub fn new(uuid: Uuid) -> Self
+    pub fn new() -> Self
     {
         Self{
-            uuid,
             ..Self::default()
         }
     }
 
-    pub fn new_asset<T: Asset>(
-        &mut self,
-        name: String,
-        constructor: impl FnOnce(Uuid) -> T
-    ) -> Box<T> 
+    pub fn add(&mut self, name: String) -> Uuid
     {
-        let uuid = match self.registry.get(&name)
+        match self.registry.get(&name)
         {
-            Some(&id) => id,
+            Some(&uuid) => uuid,
             None => {
-                let new_uuid = Uuid::new_v4();
-                self.registry.insert(name, new_uuid);
-                new_uuid
+                let uuid = Uuid::new_v4();
+                self.registry.insert(name, uuid);
+                uuid
             }
-        };
-
-        Box::new(constructor(uuid))
+        }
     }
 
     pub fn get(&self, name: &str) -> Option<&Uuid>
@@ -47,9 +39,9 @@ impl AssetRegistry
     }
 }
 
-impl Asset for AssetRegistry
+impl Asset for Registry
 {
-    fn load(&mut self, path: &Path) -> Result<(), Box<dyn Error>>
+    fn load(&mut self, path: &Path) -> Result<(), asset::Error>
     {
         let file = File::open(path)?;
         let reader = BufReader::new(file);
@@ -59,7 +51,7 @@ impl Asset for AssetRegistry
         Ok(())
     }
 
-    fn save(&mut self, path: &Path) -> Result<(), Box<dyn Error>>
+    fn save(&mut self, path: &Path) -> Result<(), asset::Error>
     {
         let mut file = File::create(path)?;
 
@@ -67,7 +59,5 @@ impl Asset for AssetRegistry
 
         Ok(())
     }
-
-    fn uuid(&self) -> &Uuid { &self.uuid }
 }
 
