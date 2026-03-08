@@ -3,7 +3,7 @@ use std::{collections::HashMap, fs::File, io::BufReader, path::Path};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::core::asset::{self, Asset};
+use crate::asset::{Asset, Error};
 
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct Registry
@@ -41,7 +41,7 @@ impl Registry
 
 impl Asset for Registry
 {
-    fn load(&mut self, path: &Path) -> Result<(), asset::Error>
+    fn load(&mut self, path: &Path) -> Result<(), Error>
     {
         let file = File::open(path)?;
         let reader = BufReader::new(file);
@@ -51,7 +51,7 @@ impl Asset for Registry
         Ok(())
     }
 
-    fn save(&mut self, path: &Path) -> Result<(), asset::Error>
+    fn save(&mut self, path: &Path) -> Result<(), Error>
     {
         let mut file = File::create(path)?;
 

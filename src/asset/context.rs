@@ -2,7 +2,7 @@ use std::{any::{Any, TypeId}, collections::HashMap, path::PathBuf};
 
 use uuid::Uuid;
 
-use crate::core::{asset::{self, Asset, Handle}, asset_registry::Registry};
+use crate::asset::{Asset, Handle, Error, registry::Registry};
 
 struct Slot<T: Asset>
 {
@@ -46,7 +46,7 @@ impl Context
         }
     }
 
-    pub fn save_registry(&mut self) -> Result<(), asset::Error>
+    pub fn save_registry(&mut self) -> Result<(), Error>
     {
         self.registry.save(&self.registry_path)
     }

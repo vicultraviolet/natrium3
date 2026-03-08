@@ -1,16 +1,14 @@
 use std::path::{Path, PathBuf};
 
 use natrium3::core::app::App;
-use natrium3::core::asset::{self, Asset};
-use natrium3::core::asset_context::Context as AssetContext;
+use natrium3::asset::{Handle, Asset, context::Context as AssetContext, text::Text as TextAsset};
 use natrium3::core::layer::Layer;
-use natrium3::core::text_asset::TextAsset;
 use natrium3::core::window_context::Context as WindowContext;
 
 struct GameLayer
 {
     frame_count: u64,
-    text_asset: asset::Handle<TextAsset>
+    text_asset: Handle<TextAsset>
 }
 
 impl GameLayer

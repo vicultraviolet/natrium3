@@ -1,6 +1,6 @@
 use winit::event::WindowEvent;
 
-use crate::core::asset_context::Context as AssetContext;
+use crate::asset::context::Context as AssetContext;
 use crate::core::layer::Layer;
 use crate::core::window_context::{Context as WindowContext, run_app};
 
@@ -42,7 +42,7 @@ impl App
     pub fn get_asset_context(&mut self) -> &mut AssetContext { self.asset_context.as_mut().unwrap() }
     pub fn asset_context(&mut self) -> Option<&mut AssetContext> { self.asset_context.as_mut() } 
 
-    pub fn push_layer(&mut self, layer: impl Layer + 'static)
+    pub fn push_layer<T: Layer + 'static>(&mut self, layer: T)
     {
         self.layers.push(Box::new(layer));
     }

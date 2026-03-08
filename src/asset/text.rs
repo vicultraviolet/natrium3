@@ -1,14 +1,14 @@
 use std::{path::Path, fs::{read_to_string, write}};
 
-use crate::core::asset::{self, Asset};
+use crate::asset::{Asset, Error};
 
 #[derive(Debug, Default)]
-pub struct TextAsset
+pub struct Text
 {
     data: String,
 }
 
-impl TextAsset
+impl Text
 {
     pub fn new() -> Self
     {
@@ -21,15 +21,15 @@ impl TextAsset
     pub fn data(&self) -> &str { &self.data }
 }
 
-impl Asset for TextAsset
+impl Asset for Text
 {
-    fn load(&mut self, path: &Path) -> Result<(), asset::Error>
+    fn load(&mut self, path: &Path) -> Result<(), Error>
     {
         self.data = read_to_string(path)?;
         Ok(())
     }
 
-    fn save(&mut self, path: &Path) -> Result<(), asset::Error>
+    fn save(&mut self, path: &Path) -> Result<(), Error>
     {
         write(path, &mut self.data)?;
         Ok(())
