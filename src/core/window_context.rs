@@ -1,110 +1,78 @@
-use winit::dpi::LogicalSize;
-use winit::window::{Window, WindowId};
-use winit::event_loop::{EventLoop, ActiveEventLoop, ControlFlow};
-use winit::application::ApplicationHandler;
-use winit::event::WindowEvent;
-
-use crate::chrono::accumulator::Accumulator;
-use crate::chrono::timekeeper::Timekeeper;
-use crate::core::app::App;
+use winit::window::Window;
+use winit::event_loop::ActiveEventLoop;
 
 pub struct Context
 {
-    timekeeper: Timekeeper,
-    tick_accumulator: Accumulator,
     window: Option<Window>,
     title: String,
 }
 
 impl Context
 {
-    pub fn new(target_fps: u64, title: impl Into<String>) -> Self
+    pub fn new(title: String) -> Self
     {
         Self{
-            timekeeper: Timekeeper::new(target_fps),
-            tick_accumulator: Accumulator::new(1.0),
             window: None,
-            title: title.into()
+            title
         }
     }
 
-    fn create_window(&mut self, event_loop: &ActiveEventLoop) -> &mut Window
+    pub fn has_window(&self) -> bool { self.window.is_some() }
+
+    pub fn create_window(&mut self, event_loop: &ActiveEventLoop) -> &mut Window
     {
         let window_attributes = Window::default_attributes()
-            .with_inner_size(LogicalSize::new(1280, 720))
             .with_title(self.title.clone());
 
         self.window = Some(event_loop.create_window(window_attributes).unwrap());
         self.window.as_mut().unwrap()
     }
 
-    fn destroy_window(&mut self)
+    pub fn destroy_window(&mut self)
     {
         self.window = None;
     }
-}
 
-struct Handler
-{
-    app: App,
-}
-
-impl ApplicationHandler for Handler
-{
-    fn resumed(&mut self, event_loop: &ActiveEventLoop)
+    pub fn request_redraw(&self) -> bool 
     {
-        self.app.get_window_context().create_window(event_loop).request_redraw();
+        self.window.as_ref().map(|window| window.request_redraw()).is_some()
     }
 
-    fn suspended(&mut self, _event_loop: &ActiveEventLoop)
+    pub fn get_size(&self) -> Option<(u32, u32)>
     {
-        self.app.get_window_context().destroy_window();
+        self.window.as_ref().map(|window| (window.inner_size().width, window.inner_size().height ))
     }
 
-    fn window_event(
-        &mut self,
-        event_loop: &ActiveEventLoop,
-        _window_id: WindowId,
-        e: WindowEvent,
-    ) {
-        match e
+    pub fn title(&self) -> &str { &self.title }
+    pub fn set_title(&mut self, title: String) -> Option<String>
+    {
+        match self.window.as_mut()
         {
-            WindowEvent::CloseRequested => event_loop.exit(),
-            WindowEvent::RedrawRequested =>
+            Some(window) =>
             {
-                let dt = self.app.get_window_context().timekeeper.dt();
-                let tick_count = self.app.get_window_context().tick_accumulator.update(dt);
-
-                for _ in 0..tick_count
-                {
-                    self.app.on_tick();
-                }
-
-                self.app.on_update(dt);
-
-                self.app.on_draw();
-
-                if let Some(window) = &self.app.get_window_context().window
-                {
-                    window.request_redraw();
-                }
-
-                self.app.get_window_context().timekeeper.pace();
-                self.app.get_window_context().timekeeper.tick();
-            },
-            _ => self.app.on_event(&e) 
+                self.title = title;
+                window.set_title(&self.title);
+                None
+            }
+            None => Some(title) 
         }
     }
-}
 
-pub fn run_app(mut app: App)
-{
-    let event_loop = EventLoop::new().unwrap();
-    event_loop.set_control_flow(ControlFlow::Poll);
+    pub fn has_focus(&self) -> Option<bool> 
+    {
+        self.window.as_ref().map(|window| window.has_focus())
+    }
 
-    app.get_window_context().timekeeper.tick();
-
-    let mut handler = Handler{ app };
-    let _ = event_loop.run_app(&mut handler);
+    pub fn is_minimized(&self) -> Option<bool>
+    {
+        match self.window.as_ref()
+        {
+            Some(window) =>
+            {
+                window.is_minimized()
+            }
+            None => None
+        }
+    }
 }
 
