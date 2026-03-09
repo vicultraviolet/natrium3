@@ -41,7 +41,7 @@ impl App
         match info 
         {
             ContextInfo::Window(title) => self.window_context = Some(WindowContext::new(title)),
-            ContextInfo::Asset{registry_path} => self.asset_context = Some(AssetContext::new(registry_path))
+            ContextInfo::Asset(registry_path) => self.asset_context = Some(AssetContext::new(registry_path))
         }
     }
 
