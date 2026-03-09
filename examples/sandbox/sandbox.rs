@@ -38,7 +38,7 @@ fn main()
     let mut app = App::new(1000);
 
     app.create_context(ContextInfo::Window(String::from("Sandbox")));
-    app.create_context(ContextInfo::Asset{ registry_path: PathBuf::from("assets/asset_registry.json") });
+    app.create_context(ContextInfo::Asset(PathBuf::from("assets/asset_registry.json")));
 
     app.push_layer(GameLayer::new());
 
